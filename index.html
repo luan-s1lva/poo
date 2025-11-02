@@ -1,19 +1,40 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
-    <title></title>
+    <title>Pac-Man</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    
     <link href="style.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.js"></script>
 </head>
 
 <body>
+    
+    <div id="game-container">
+      <div id="hud">
+        <div class="hud-item">
+          <span>SCORE</span>
+          <span id="score-valor">0</span>
+        </div>
+        <div class="hud-item">
+          <span>VIDAS</span>
+          <span id="vidas-valor">3</span>
+        </div>
+      </div>
+      
+      <main id="canvas-container"></main>
+    </div>
+    <script src="config.js"></script>
     <script src="Entidade.js"></script>
-    <script src="Packman.js"></script>
+    <script src="Pacman.js"></script>
+    <script src="Fantasma.js"></script>
+    <script src="Parede.js"></script>
+    <script src="Comida.js"></script>
     <script src="Jogo.js"></script>
-
 </body>
-
 </html>
