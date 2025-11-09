@@ -46,7 +46,6 @@ class Entidade {
   }
 
   colisao(alvo) {
-    let dis = dist(this.#x, this.#y, alvo.x, alvo.y);
-    return dis < this.#tamanho / 2 + alvo.tamanho / 2;
+    return Auxiliar.estaoColidindo(this, alvo);
   }
 }

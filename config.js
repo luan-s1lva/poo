@@ -33,6 +33,11 @@ let mapa = [
 ];
 
 // configs globais
+let tela = 0;
+if(tela == 0 ){
+  document.getElementById('game-start').style.display = 'none';
+}
+
 let tamanhoCelula = 20;
 let velocidade = 5;
 let velocidadeFantasma = 2.5; 

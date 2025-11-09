@@ -7,16 +7,17 @@ class Fantasma extends Entidade {
   vx = 0;
   vy = 0;
   direcaoAtual = "ESQUERDA";
-  estado = "SPAWNING"; // estado até sair da caixa
+  #estado = "SPAWNING"; // estado até sair da caixa
   personalidade = "BLINKY";
 
   constructor(linha, coluna, cor, tamanho, personalidade) {
-    let xInicial = coluna * tamanhoCelula + tamanhoCelula / 2;
-    let yInicial = linha * tamanhoCelula + tamanhoCelula / 2;
+    let xInicial = Auxiliar.gridParaPixel_X(coluna);
+    let yInicial = Auxiliar.gridParaPixel_Y(linha);
     super(xInicial, yInicial, cor, tamanho);
 
     this.linha = linha;
     this.coluna = coluna;
+    this.#estado = "SPAWNING";
     this.personalidade = personalidade;
 
     this.vx = -velocidadeFantasma;
@@ -86,7 +87,7 @@ class Fantasma extends Entidade {
         default: // padrão é perseguir o pacman
           alvoLinha = pacman.linha;
           alvoColuna = pacman.coluna;
-          console.log("erro de personalidade")
+          console.log("erro de personalidade");
           break;
       }
     }
@@ -102,7 +103,6 @@ class Fantasma extends Entidade {
     this.linha = Math.round((this.y - tamanhoCelula / 2) / tamanhoCelula);
 
     if (this.estado === "SPAWNING" && this.linha === SAIDA_CAIXA.linha) {
-      // <--- A CORREÇÃO
       this.estado = "CHASING";
     }
 
@@ -161,5 +161,12 @@ class Fantasma extends Entidade {
 
     this.x += this.vx;
     this.y += this.vy;
+  }
+  get estado() {
+    return this.#estado;
+  }
+
+  set estado(novoEstado) {
+    this.#estado = novoEstado;
   }
 }

@@ -1,8 +1,11 @@
 let scoreElement;
 let vidasElement;
 let canvasContainer;
+let menuImg;
+let ranking = [];
 
 function preload() {
+  menuImg = loadImage("imgs/menu.png");
   gerarMapa();
 }
 
@@ -22,28 +25,53 @@ function setup() {
 }
 
 function draw() {
-  background(0);
+  if (tela == 1) {
+    background(0);
 
-  for (let parede of paredes) {
-    parede.desenhar();
+    for (let parede of paredes) {
+      parede.desenhar();
+    }
+    for (let comida of comidas) {
+      comida.desenhar();
+    }
+
+    pacman.mover();
+    pacman.desenhar();
+
+    fantasmaVermelho.mover();
+    fantasmaVermelho.desenhar();
+
+    fantasmaRosa.mover();
+    fantasmaRosa.desenhar();
+
+    detectarColisaoInimigo();
+    detectarComerComida();
+
+    /*  if(pontuacao == 50){
+        ganharJogo();
+      }*/
+
+  } /*if (tela == 2) {
+    for (var i = 0; i < localStorage.length; i++) {
+      localStorage.getItem(localStorage.key(i));
+    }
+  }*/ else {
+    background(menuImg)
+
   }
-  for (let comida of comidas) {
-    comida.desenhar();
-  }
 
-  pacman.mover();
-  pacman.desenhar();
-
-  fantasmaVermelho.mover();
-  fantasmaVermelho.desenhar();
-
-  fantasmaRosa.mover();
-  fantasmaRosa.desenhar();
-
-  detectarColisaoInimigo();
-  detectarComerComida();
 }
-
+function mousePressed() {
+  if (tela == 0) {
+    if (mouseX >= 72 && mouseX <= 170 && mouseY >= 545 && mouseY <= 560) {
+      tela = 1;
+      document.getElementById('game-start').style.display = 'block';
+    }
+    if (mouseX >= 383 && mouseX <= 495 && mouseY >= 545 && mouseY <= 560) {
+      tela = 2;
+    }
+  }
+}
 function keyPressed() {
   if (keyCode === UP_ARROW) {
     pacman.setDirecao("CIMA");
@@ -58,7 +86,7 @@ function keyPressed() {
 
 const detectarColisaoInimigo = () => {
   if (pacman.colisao(fantasmaVermelho) || pacman.colisao(fantasmaRosa)) {
-    pacman.vida -= 0;
+    pacman.vida -= 1;
     atualizarHUD();
 
     if (pacman.vida <= 0) {
@@ -174,5 +202,16 @@ const atualizarHUD = () => {
 };
 const ganharJogo = () => {
   noLoop();
-  alert("VOCÊ VENCEU! Pontuação: " + pontuacao + ". F5 para reiniciar.");
+  let nome = prompt("VOCÊ VENCEU! Pontuação: " + pontuacao + ". Digite seu nome:");
+  let pontos = pontuacao;
+
+  let users = JSON.parse(localStorage.getItem("usuarios") || []);
+
+  users.push({ nome, pontuacao: pontos });
+
+  localStorage.setItem("usuarios", JSON.stringify(users));
+
+  alert("Pontuação salva!");
+  console.log(users);
+
 };
