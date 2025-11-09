@@ -15,10 +15,8 @@ function setup() {
   scoreElement = document.getElementById("score-valor");
   vidasElement = document.getElementById("vidas-valor");
 
-  //pos inicial pacman
   pacman = new Pacman(23, 13, color(255, 255, 0), 20);
 
-  // posi inicial dos fantasmas
   fantasmaVermelho = new Fantasma(14, 13, color(255, 0, 0), 20, "BLINKY");
   fantasmaRosa = new Fantasma(14, 15, color(255, 184, 222), 20, "PINKY");
   atualizarHUD();
@@ -46,21 +44,104 @@ function draw() {
 
     detectarColisaoInimigo();
     detectarComerComida();
+  }
 
-    /*  if(pontuacao == 50){
-        ganharJogo();
-      }*/
+  if (tela == 2) {
+    background(0)
+    const storedScores = localStorage.getItem("usuarios");
 
-  } /*if (tela == 2) {
-    for (var i = 0; i < localStorage.length; i++) {
-      localStorage.getItem(localStorage.key(i));
+    let highScores = [];
+
+    if (storedScores) {
+      try {
+        highScores = JSON.parse(storedScores);
+      } catch (e) {
+        console.error("Erro ao carregar pontuações do localStorage:", e);
+        highScores = [];
+      }
     }
-  }*/ else {
+
+    highScores.sort((a, b) => b.pontuacao - a.pontuacao);
+
+    exibirPlacar(highScores);
+  } else if (tela == 0) {
     background(menuImg)
 
   }
 
 }
+
+function exibirPlacar(highScores) {
+  const xPos = width / 2;
+  let yPos = 50;
+  const lineHeight = 35;
+
+  fill(255, 255, 0);
+  textAlign(CENTER);
+  textSize(40);
+  text("MELHORES PONTUAÇÕES", xPos, yPos);
+
+  yPos += 50;
+
+  textSize(24);
+  textAlign(LEFT);
+
+  fill(150);
+  text("POS.", xPos - 150, yPos);
+  text("NOME", xPos - 80, yPos);
+  text("PONTOS", xPos + 100, yPos);
+
+  yPos += lineHeight;
+
+  if (highScores.length === 0) {
+    fill(255);
+    textAlign(CENTER);
+    text("Nenhuma pontuação salva ainda!", xPos, yPos + lineHeight);
+    return;
+  }
+
+  highScores.forEach((recorde, index) => {
+    if (index === 0) {
+      fill(255, 215, 0);
+    } else {
+      fill(255);
+    }
+
+    text((index + 1) + ".", xPos - 150, yPos);
+    text(recorde.nome, xPos - 80, yPos);
+
+    textAlign(RIGHT);
+    text(nf(recorde.pontuacao, 0, 0), xPos + 180, yPos);
+    textAlign(LEFT);
+
+    yPos += lineHeight;
+  });
+}
+
+function salvarPontuacao(venceu) {
+  noLoop();
+
+  let mensagem = venceu ? "VOCÊ VENCEU!" : "FIM DE JOGO!";
+  let nome = prompt(mensagem + " Pontuação: " + pontuacao + ". Digite seu nome:");
+
+  if (!nome) {
+    tela = 0;
+    loop();
+    return;
+  }
+
+  let pontos = pontuacao;
+
+  let users = JSON.parse(localStorage.getItem("usuarios") || '[]');
+  users.push({ nome, pontuacao: pontos });
+  localStorage.setItem("usuarios", JSON.stringify(users));
+
+  alert("Pontuação salva!");
+
+  tela = 2;
+  loop();
+}
+
 function mousePressed() {
   if (tela == 0) {
     if (mouseX >= 72 && mouseX <= 170 && mouseY >= 545 && mouseY <= 560) {
@@ -90,7 +171,7 @@ const detectarColisaoInimigo = () => {
     atualizarHUD();
 
     if (pacman.vida <= 0) {
-      detectarMorte(); //
+      detectarMorte();
       return;
     }
     resetarPacman();
@@ -140,13 +221,13 @@ const gerarMapa = () => {
       } else if (valor === 0) {
         if (
           (i === 3 && j === 1) ||
-          (i === 3 && j === 26) || //posi comida maior
+          (i === 3 && j === 26) ||
           (i === 23 && j === 1) ||
           (i === 23 && j === 26)
         ) {
           comidas.push(new Comida(i, j, "forte"));
         } else if (
-          (i >= 12 && i <= 16 && j >= 10 && j <= 17) || // Dentro da caixa
+          (i >= 12 && i <= 16 && j >= 10 && j <= 17) ||
           (i === 26 && j === 13)
         ) {
         } else {
@@ -192,26 +273,31 @@ const atualizarHUD = () => {
     scoreElement.innerText = pontuacao;
   }
   if (vidasElement) {
-    // garantir que o pm já exista antes de tentar ler a vida dele
     if (pacman) {
       vidasElement.innerText = pacman.vida;
     } else {
-      vidasElement.innerText = 3; // valor padrão
+      vidasElement.innerText = 3;
     }
   }
 };
 const ganharJogo = () => {
   noLoop();
   let nome = prompt("VOCÊ VENCEU! Pontuação: " + pontuacao + ". Digite seu nome:");
+
+  if (!nome) {
+    nome = "JOGADOR";
+  }
+
   let pontos = pontuacao;
 
-  let users = JSON.parse(localStorage.getItem("usuarios") || []);
+  let users = JSON.parse(localStorage.getItem("usuarios") || '[]');
 
   users.push({ nome, pontuacao: pontos });
 
   localStorage.setItem("usuarios", JSON.stringify(users));
 
   alert("Pontuação salva!");
-  console.log(users);
 
+  tela = 2;
+  loop();
 };
