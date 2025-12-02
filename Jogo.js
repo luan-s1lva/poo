@@ -47,7 +47,7 @@ function draw() {
   }
 
   if (tela == 2) {
-    background(0)
+    background(0);
     const storedScores = localStorage.getItem("usuarios");
 
     let highScores = [];
@@ -65,10 +65,8 @@ function draw() {
 
     exibirPlacar(highScores);
   } else if (tela == 0) {
-    background(menuImg)
-
+    background(menuImg);
   }
-
 }
 
 function exibirPlacar(highScores) {
@@ -107,7 +105,7 @@ function exibirPlacar(highScores) {
       fill(255);
     }
 
-    text((index + 1) + ".", xPos - 150, yPos);
+    text(index + 1 + ".", xPos - 150, yPos);
     text(recorde.nome, xPos - 80, yPos);
 
     textAlign(RIGHT);
@@ -122,7 +120,9 @@ function salvarPontuacao(venceu) {
   noLoop();
 
   let mensagem = venceu ? "VOCÊ VENCEU!" : "FIM DE JOGO!";
-  let nome = prompt(mensagem + " Pontuação: " + pontuacao + ". Digite seu nome:");
+  let nome = prompt(
+    mensagem + " Pontuação: " + pontuacao + ". Digite seu nome:"
+  );
 
   if (!nome) {
     tela = 0;
@@ -132,7 +132,7 @@ function salvarPontuacao(venceu) {
 
   let pontos = pontuacao;
 
-  let users = JSON.parse(localStorage.getItem("usuarios") || '[]');
+  let users = JSON.parse(localStorage.getItem("usuarios") || "[]");
   users.push({ nome, pontuacao: pontos });
   localStorage.setItem("usuarios", JSON.stringify(users));
 
@@ -146,7 +146,7 @@ function mousePressed() {
   if (tela == 0) {
     if (mouseX >= 72 && mouseX <= 170 && mouseY >= 545 && mouseY <= 560) {
       tela = 1;
-      document.getElementById('game-start').style.display = 'block';
+      document.getElementById("game-start").style.display = "block";
     }
     if (mouseX >= 383 && mouseX <= 495 && mouseY >= 545 && mouseY <= 560) {
       tela = 2;
@@ -166,23 +166,49 @@ function keyPressed() {
 }
 
 const detectarColisaoInimigo = () => {
-  if (pacman.colisao(fantasmaVermelho) || pacman.colisao(fantasmaRosa)) {
-    pacman.vida -= 1;
-    atualizarHUD();
-
-    if (pacman.vida <= 0) {
-      detectarMorte();
+  if (pacman.colisao(fantasmaVermelho)) {
+    if (fantasmaVermelho.estado === "FUGITIVE") {
+      pontuacao += 200;
+      fantasmaVermelho.respawn();
+      atualizarHUD();
+    } else if (fantasmaVermelho.estado !== "SPAWNING") {
+      lidarComMortePacman();
       return;
     }
-    resetarPacman();
-    resetarFantasmas();
   }
+
+  if (pacman.colisao(fantasmaRosa)) {
+    if (fantasmaRosa.estado === "FUGITIVE") {
+      pontuacao += 200;
+      fantasmaRosa.respawn();
+      atualizarHUD();
+    } else if (fantasmaRosa.estado !== "SPAWNING") {
+      lidarComMortePacman();
+      return;
+    }
+  }
+};
+const lidarComMortePacman = () => {
+  pacman.vida -= 1;
+  pontuacao -= 350;
+  if (pontuacao <= 0) {
+    pontuacao = 0;
+  }
+  atualizarHUD();
+
+  if (pacman.vida <= 0) {
+    detectarMorte();
+    return;
+  }
+  resetarPacman();
+  resetarFantasmas();
 };
 
 const detectarMorte = () => {
   if (pacman.vida == 0) {
     noLoop();
-    alert("Morreu! F5 para reiniciar.");
+    alert("Você Morreu!");
+    marcarPonto();
   }
 };
 
@@ -195,12 +221,14 @@ const detectarComerComida = () => {
         pontuacao += 10;
       } else {
         pontuacao += 50;
+        fantasmaVermelho.fugir();
+        fantasmaRosa.fugir();
       }
 
       comidas.splice(i, 1);
       atualizarHUD();
       if (comidas.length === 0) {
-        ganharJogo();
+        marcarPonto();
       }
     }
   }
@@ -248,21 +276,33 @@ const resetarPacman = () => {
   pacman.direcaoDesejada = "NENHUMA";
 };
 const resetarFantasmas = () => {
+  // --- FANTASMA VERMELHO ---
+  fantasmaVermelho.voltarAoNormal();
+
+  //Posição inicial
   fantasmaVermelho.linha = 14;
   fantasmaVermelho.coluna = 13;
   fantasmaVermelho.x =
     fantasmaVermelho.coluna * tamanhoCelula + tamanhoCelula / 2;
   fantasmaVermelho.y =
     fantasmaVermelho.linha * tamanhoCelula + tamanhoCelula / 2;
+
+  // Estado inicial
   fantasmaVermelho.estado = "SPAWNING";
   fantasmaVermelho.vx = -velocidadeFantasma;
   fantasmaVermelho.vy = 0;
   fantasmaVermelho.direcaoAtual = "ESQUERDA";
 
+  // --- FANTASMA ROSA ---
+  fantasmaRosa.voltarAoNormal();
+
+  // Posição inicial
   fantasmaRosa.linha = 14;
   fantasmaRosa.coluna = 16;
   fantasmaRosa.x = fantasmaRosa.coluna * tamanhoCelula + tamanhoCelula / 2;
   fantasmaRosa.y = fantasmaRosa.linha * tamanhoCelula + tamanhoCelula / 2;
+
+  // Estado inicial
   fantasmaRosa.estado = "SPAWNING";
   fantasmaRosa.vx = -velocidadeFantasma;
   fantasmaRosa.vy = 0;
@@ -280,9 +320,11 @@ const atualizarHUD = () => {
     }
   }
 };
-const ganharJogo = () => {
+const marcarPonto = () => {
   noLoop();
-  let nome = prompt("VOCÊ VENCEU! Pontuação: " + pontuacao + ". Digite seu nome:");
+  let nome = prompt(
+    "Jogo Finalizado! Pontuação: " + pontuacao + ". Digite seu nome:"
+  );
 
   if (!nome) {
     nome = "JOGADOR";
@@ -290,7 +332,7 @@ const ganharJogo = () => {
 
   let pontos = pontuacao;
 
-  let users = JSON.parse(localStorage.getItem("usuarios") || '[]');
+  let users = JSON.parse(localStorage.getItem("usuarios") || "[]");
 
   users.push({ nome, pontuacao: pontos });
 

@@ -7,7 +7,7 @@ class Comida extends Entidade {
     let tamanho = tipo === "padrao" ? 8 : 16;
     let cor = color(255, 255, 150);
     super(x, y, cor, tamanho);
-    this.tipo = tipo;
+    this.#tipo = tipo;
   }
   get tipo() {
     return this.#tipo;

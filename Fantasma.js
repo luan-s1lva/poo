@@ -9,6 +9,8 @@ class Fantasma extends Entidade {
   direcaoAtual = "ESQUERDA";
   #estado = "SPAWNING"; // estado até sair da caixa
   personalidade = "BLINKY";
+  tempoFuga = 0;
+  corOriginal;
 
   constructor(linha, coluna, cor, tamanho, personalidade) {
     let xInicial = Auxiliar.gridParaPixel_X(coluna);
@@ -19,6 +21,7 @@ class Fantasma extends Entidade {
     this.coluna = coluna;
     this.#estado = "SPAWNING";
     this.personalidade = personalidade;
+    this.corOriginal = cor;
 
     this.vx = -velocidadeFantasma;
   }
@@ -60,6 +63,13 @@ class Fantasma extends Entidade {
     let alvoLinha;
     let alvoColuna;
 
+    if (this.#estado === "FUGITIVE") {
+      // Gera um alvo aleatório no mapa
+      return {
+        x: Math.random() * width,
+        y: Math.random() * height,
+      };
+    }
     if (this.estado === "SPAWNING") {
       // sair da caixa -> evitar bug
       alvoLinha = SAIDA_CAIXA.linha;
@@ -99,6 +109,18 @@ class Fantasma extends Entidade {
   }
 
   mover() {
+    if (this.#estado === "FUGITIVE") {
+      this.tempoFuga--;
+      if (this.tempoFuga <= 0) {
+        this.voltarAoNormal();
+      } else {
+        if (this.tempoFuga < 120 && Math.floor(this.tempoFuga / 10) % 2 === 0) {
+          this.cor = color(255);
+        } else {
+          this.cor = color(0, 0, 255);
+        }
+      }
+    }
     this.coluna = Math.round((this.x - tamanhoCelula / 2) / tamanhoCelula);
     this.linha = Math.round((this.y - tamanhoCelula / 2) / tamanhoCelula);
 
@@ -161,6 +183,39 @@ class Fantasma extends Entidade {
 
     this.x += this.vx;
     this.y += this.vy;
+  }
+  fugir() {
+    if (this.#estado !== "SPAWNING" && this.#estado !== "EATEN") {
+      this.#estado = "FUGITIVE";
+      this.cor = color(0, 0, 255);
+      this.tempoFuga = 600;
+      if (this.vx !== 0) this.vx *= -1;
+      if (this.vy !== 0) this.vy *= -1;
+
+      //Inverter direcao
+      if (this.direcaoAtual === "ESQUERDA") this.direcaoAtual = "DIREITA";
+      else if (this.direcaoAtual === "DIREITA") this.direcaoAtual = "ESQUERDA";
+      else if (this.direcaoAtual === "CIMA") this.direcaoAtual = "BAIXO";
+      else if (this.direcaoAtual === "BAIXO") this.direcaoAtual = "CIMA";
+    }
+  }
+  voltarAoNormal() {
+    this.#estado = "CHASING";
+    this.cor = this.corOriginal;
+    this.tempoFuga = 0;
+  }
+  respawn() {
+    this.linha = 14;
+    this.coluna = this.personalidade === "BLINKY" ? 13 : 16;
+
+    this.x = this.coluna * tamanhoCelula + tamanhoCelula / 2;
+    this.y = this.linha * tamanhoCelula + tamanhoCelula / 2;
+
+    this.#estado = "SPAWNING";
+    this.cor = this.corOriginal;
+    this.vx = -velocidadeFantasma;
+    this.vy = 0;
+    this.direcaoAtual = "ESQUERDA";
   }
   get estado() {
     return this.#estado;
